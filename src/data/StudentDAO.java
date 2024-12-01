@@ -2,6 +2,7 @@ package data;
 
 import net.DatabaseConnection;
 
+import javax.xml.transform.Result;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -72,25 +73,29 @@ public class StudentDAO {
         }
     }
 
-    public void deleteAllStudents() {
+    public boolean deleteAllStudents() {
         String sql = "DELETE FROM students";
         try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement()) {
             stmt.executeUpdate(sql);
             System.out.println("All students deleted successfully!");
+
+            return true;
         } catch (SQLException e) {
             e.printStackTrace();
+            return false;
         }
     }
 
     public List<Student> searchStudentsByLastName(String lastName) {
         List<Student> students = new ArrayList<>();
         String sql = "SELECT * FROM students WHERE last_name = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try {
+            Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, lastName);
-            try (ResultSet rs = pstmt.executeQuery()) {
-                while (rs.next()) {
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
                     Student student = new Student(
                             rs.getInt("id"),
                             rs.getString("first_name"),
@@ -100,11 +105,55 @@ public class StudentDAO {
                             rs.getInt("passed_courses")
                     );
                     students.add(student);
-                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return students;
+    }
+
+    public List<Student> searchStudentsBySemester(int semester) {
+        List<Student> students = new ArrayList<>();
+        String sql = "SELECT * FROM students WHERE semester = ?";;
+
+        try{
+            Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement statement = conn.prepareStatement(sql);
+            statement.setInt(1, semester);
+
+            ResultSet rs = statement.executeQuery();
+            while(rs.next()){
+                Student student = new Student(
+                        rs.getInt("id"),
+                        rs.getString("first_name"),
+                        rs.getString("last_name"),
+                        rs.getString("school"),
+                        rs.getInt("semester"),
+                        rs.getInt("passed_courses")
+                );
+                students.add(student);
+            }
+
+        }catch(SQLException e){
+            e.printStackTrace();
+        }
+
+        return students;
+    }
+
+    public boolean updateStudentPassedCourses(int studentId, int newPassedCourse){
+        String sql = "UPDATE students SET passed_courses = ? WHERE id = ?";
+        try{
+            Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement statement = conn.prepareStatement(sql);
+            statement.setInt(1, newPassedCourse);
+            statement.setInt(2, studentId);
+
+            int rows = statement.executeUpdate();
+            return rows > 0;
+        }catch(SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }

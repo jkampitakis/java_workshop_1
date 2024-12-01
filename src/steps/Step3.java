@@ -18,8 +18,8 @@ public class Step3 {
     public Step3() {
         // Create a frame
         frame = new JFrame("Step3");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(600, 400);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLayout(new BorderLayout());
 
         textArea = new JTextArea();
@@ -51,6 +51,12 @@ public class Step3 {
         }
 
         List<Student> students = studentDAO.searchStudentsByLastName(lastName);
+
+        if(students.isEmpty()) {
+            JOptionPane.showMessageDialog(frame, "No students found with that last name.", "No Results", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
         for (Student student : students) {
             textArea.append(student.getId() + "\t" +
                     student.getFirstName() + "\t" +
